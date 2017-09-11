@@ -1,11 +1,9 @@
 import pyqrcode
-from StringIO import StringIO
+from io import BytesIO
 import sys
 from time import time as now
 
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-
-
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 class myRequestHandler(BaseHTTPRequestHandler):
     def _set_headers(self):
@@ -16,11 +14,13 @@ class myRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
 
         if not self.server._svg:
-            svg = StringIO()
+            svg = BytesIO()
+            svg.write(b"<html><body><h1>Robotour 2017</h1>\n")
             qr = pyqrcode.create('robotour')
             qr.svg(svg, scale=10)
-            self.server._svg = svg.getvalue()
-        response = "<html><body><h1>Robotour 2017</h1>\n%s\n</body></html>"%self.server._svg
+            svg.write(b"\n</body></html>")
+            self.server._svg = svg
+        response = self.server._svg.getvalue()
         self._set_headers()
         self.wfile.write(response)
 
