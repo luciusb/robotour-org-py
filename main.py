@@ -1,7 +1,8 @@
 import pyqrcode
 from io import BytesIO
 import sys
-from time import time as now
+from datetime import datetime
+now = datetime.now
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
@@ -12,17 +13,26 @@ class myRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-
-        if not self.server._svg:
-            svg = BytesIO()
-            svg.write(b"<html><body><h1>Robotour 2017</h1>\n")
-            qr = pyqrcode.create('robotour')
-            qr.svg(svg, scale=10)
-            svg.write(b"\n</body></html>")
-            self.server._svg = svg
-        response = self.server._svg.getvalue()
+        data="robotour 2017 %s"%now().strftime("%H:%M")
+        if self.path == '/raw':
+            response=data
+        else:
+            if self.path.startswith('/auto'):
+                try:
+                    t=int(self.path[5:])
+                except:
+                    t=15
+                head='<meta http-equiv="refresh" content="%i" >'%t
+            header=u"<html><head>%s</head><body><h1>%s</h1><br>\n"%(head,data)
+            footer=u"\n</body></html>"
+            if not self.server._lastdata or self.server._lastdata!= data:
+                svg = BytesIO()
+                qr = pyqrcode.create('robotour')
+                qr.svg(svg, scale=20)
+                self.server._svg = svg
+            response = header+str(self.server._svg.getvalue())+footer
         self._set_headers()
-        self.wfile.write(response)
+        self.wfile.write(response.encode('utf8'))
 
     def do_HEAD(self):
         self._set_headers()
@@ -42,6 +52,7 @@ def run(port=80):
     server_address = ('', port)
     httpd = HTTPServer(server_address, myRequestHandler)
     httpd._svg=None
+    httpd._lastdata=None
     print('Starting httpd...')
     httpd.serve_forever()
 
