@@ -24,8 +24,8 @@ class myRequestHandler(BaseHTTPRequestHandler):
                 except:
                     t=15
                 head='<meta http-equiv="refresh" content="'+t+'" >'
-            header=u"<html><head>"+head+"</head><body><h1>"+data+"</h1><br>\n"
-            footer=u"\n</body></html>"
+            header=u"<html><head>"+head+"</head><body><h1>"+data+"</h1><br>"
+            footer=u"</body></html>"
             if not self.server._lastdata or self.server._lastdata!= data:
                 svg = BytesIO()
                 qr = pyqrcode.create('robotour')
