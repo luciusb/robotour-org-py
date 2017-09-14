@@ -17,13 +17,14 @@ class myRequestHandler(BaseHTTPRequestHandler):
         if self.path == '/raw':
             response=data
         else:
+            head=''
             if self.path.startswith('/auto'):
                 try:
                     t=int(self.path[5:])
                 except:
                     t=15
-                head='<meta http-equiv="refresh" content="%i" >'%t
-            header=u"<html><head>%s</head><body><h1>%s</h1><br>\n"%(head,data)
+                head='<meta http-equiv="refresh" content="'+t+'" >'
+            header=u"<html><head>"+head+"</head><body><h1>"+data+"</h1><br>\n"
             footer=u"\n</body></html>"
             if not self.server._lastdata or self.server._lastdata!= data:
                 svg = BytesIO()
