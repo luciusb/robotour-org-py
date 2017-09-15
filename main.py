@@ -1,6 +1,6 @@
 import pyqrcode
 from io import BytesIO
-import sys
+import sys, os
 from datetime import datetime
 now = datetime.now
 
@@ -75,7 +75,7 @@ def run(port=80):
     httpd = HTTPServer(server_address, myRequestHandler)
     httpd._svg=None
     httpd._lastdata=None
-    httpd._config=readconfig("rounds.txt")
+    httpd._config=readconfig(os.path.join(os.path.split(os.path.abspath(__file__))[0],"rounds.txt"))
     print('Starting httpd...')
     httpd.serve_forever()
 
