@@ -24,8 +24,8 @@ class myRequestHandler(BaseHTTPRequestHandler):
                 except:
                     t=15
                 head='<meta http-equiv="refresh" content="%s" >'%t
-            intro='<h1>ROBOTOUR 2017</h1>last update %s<h2> WiFi SSID: robotour password: robotour address: 192.168.43.1:8888</h2><br>'%n.strftime("%H:%M:%S")
-            header="<html><head>%s</head><body>%s<h1>%s<br>pickup: %s<br> dropoff: %s</h1><br>"%(head, intro, text, pickup, dropoff)
+            intro='<h1>ROBOTOUR 2017</h1>last update %s<h2> WiFi SSID: robotour password: robotour address: 192.168.43.1:8888</h2>'%n.strftime("%H:%M:%S")
+            header="<html><head>%s</head><body>%s<h1>%s<br>pickup: %s<br> dropoff: %s</h1>"%(head, intro, text, pickup, dropoff)
             footer="</body></html>"
             response = header+self.getQR(text+'\npickup: '+pickup+'\ndropoff: '+dropoff)+footer
         else:
@@ -47,7 +47,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
         if not self.server._lastdata or self.server._lastdata!= data:
                 svg = BytesIO()
                 qr = pyqrcode.create(data)
-                qr.svg(svg, scale=20)
+                qr.svg(svg, scale=18)
                 self.server._svg = svg
                 self.server._lastdata=data
         return self.server._svg.getvalue().decode('utf8')
