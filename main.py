@@ -50,8 +50,12 @@ class myRequestHandler(BaseHTTPRequestHandler):
             open(resultsfn,'wb').write(data)
         if 'rounds' in self.path:
             open(roundsfn,'wb').write(data)
+            self.server._config = readconfig(roundsfn)
+            self.server._lastdata=None
         if 'points' in self.path:
             open(pointsfn,'wb').write(data)
+            self.server._points = readPoints(pointsfn)
+            self.server._lastdata=None
 
         self._set_headers()
         self.wfile.write("<html><body><h1>POST!</h1></body></html>".encode('utf8'))
