@@ -3,7 +3,7 @@ from io import BytesIO
 import sys, os
 from datetime import datetime, timedelta
 now = datetime.now
-
+resultsfn = os.path.join(os.path.split(os.path.abspath(__file__))[0],"results.txt")
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 class myRequestHandler(BaseHTTPRequestHandler):
@@ -15,7 +15,9 @@ class myRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         n=now()
         text, pickup, dropoff, nextrun=self.getCurrentData(n)
-        if 'full' in self.path or 'auto' in self.path:
+        if 'result' in self.path:
+            response= self.generateResults()
+        elif 'full' in self.path or 'auto' in self.path:
             head=''
             intr=''
             if self.path.startswith('/auto'):
@@ -39,8 +41,13 @@ class myRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         # Doesn't do anything with posted data
+
+        data=self.rfile.read(int(self.headers.get('content-length',0)))
+        if 'result' in self.path:
+            open(resultsfn,'wb').write(data)
+
         self._set_headers()
-        self.wfile.write("<html><body><h1>POST!</h1></body></html>")
+        self.wfile.write("<html><body><h1>POST!</h1></body></html>".encode('utf8'))
 
 
     def getQR(self, data):
@@ -51,6 +58,42 @@ class myRequestHandler(BaseHTTPRequestHandler):
                 self.server._svg = svg
                 self.server._lastdata=data
         return self.server._svg.getvalue().decode('utf8')
+
+    def generateResults(self):
+        if not self.server._resultTS or self.server._resultTS!= os.stat(resultsfn).st_mtime:
+            self.server._results=eval(open(resultsfn,'r').read())
+            self.server._resultTS = os.stat(resultsfn).st_mtime
+        resulr="""
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {    border: 1px solid black;
+    border-collapse: collapse;
+}
+</style>
+</head>
+<body>
+<table>
+<tr><td></td><td>round0</td><td>round1</td><td>round2</td><td>round3</td><td>round4</td><td>total</td></tr>
+"""
+        table=[]
+        for line in self.server._results:
+            total = sum(x for x in line[2:])
+            html="<tr>\n"
+            for i,cell in enumerate(line):
+                html+="<td>%s</td>"%str(cell)
+            for j in range(i,5):
+                html+="<td></td>"
+            html+="<td>%s</td>"%str(total)
+            html+="\n</tr>"
+            table.append((total, html))
+        table.sort(reverse=True)
+        return resulr+'\n'.join((x[1] for x in table))+"</table></body>"
+
+
+
+
 
 
     def getCurrentData(self, t):
@@ -84,6 +127,7 @@ def run(port=80):
     httpd = HTTPServer(server_address, myRequestHandler)
     httpd._svg=None
     httpd._lastdata=None
+    httpd._resultTS=None
     httpd._config=readconfig(os.path.join(os.path.split(os.path.abspath(__file__))[0],"rounds.txt"))
     httpd._points=readPoints(os.path.join(os.path.split(os.path.abspath(__file__))[0],"points.txt"))
     print('Starting httpd...')
