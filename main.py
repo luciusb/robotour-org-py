@@ -14,7 +14,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         n=now()
-        text, pickup, dropoff=self.getCurrentData(n)
+        text, pickup, dropoff, nextrun=self.getCurrentData(n)
         if 'full' in self.path or 'auto' in self.path:
             head=''
             intr=''
@@ -25,7 +25,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
                     t=15
                 head='<meta http-equiv="refresh" content="%s" >'%t
             intro='<h1>ROBOTOUR 2017</h1>last update %s<h2> WiFi SSID: robotour password: robotour address: 192.168.43.1:8888</h2>'%n.strftime("%H:%M:%S")
-            header="<html><head>%s</head><body>%s<h1>%s<br>pickup: %s<br> dropoff: %s</h1>"%(head, intro, text, pickup, dropoff)
+            header="<html><head>%s</head><body>%s<h1>%s<br>pickup: %s<br> dropoff: %s</h1><h2>%s</h2>"%(head, intro, text, pickup, dropoff, nextrun)
             footer="</body></html>"
             response = header+self.getQR(text+'\npickup: '+pickup+'\ndropoff: '+dropoff)+footer
         else:
@@ -56,11 +56,15 @@ class myRequestHandler(BaseHTTPRequestHandler):
     def getCurrentData(self, t):
         for i, (timestamp, text, pickup, dropoff) in enumerate(self.server._config):
             if timestamp<=t.time():
-                if text=="":
-                    return "Next round will start at %s"%self.server._config[i-1][0].strftime("%H:%M"),"", ""
-                return text, self.server._points[pickup], self.server._points[dropoff]
+                for j in range(i-1,0,-1):
+                    if self.server._config[j][1]:
+                        nextrun="Next round will start at %s"%self.server._config[j][0].strftime("%H:%M")
+                        break
+                else:
+                    nextrun="Last round"
+                return text, self.server._points.get(pickup,""), self.server._points.get(dropoff, ""), nextrun
         else:
-            return "Round will start at %s"%self.server._config[-1][0].strftime("%H:%M"),"", ""
+            return "Round will start at %s"%self.server._config[-1][0].strftime("%H:%M"),"", "", ""
 
 def readconfig(fn):
     with open(fn,'r') as f:
