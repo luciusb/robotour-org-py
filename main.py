@@ -2,9 +2,12 @@ import pyqrcode
 from io import BytesIO
 import sys, os
 from datetime import datetime, timedelta
-now = datetime.now
-resultsfn = os.path.join(os.path.split(os.path.abspath(__file__))[0],"results.txt")
 from http.server import BaseHTTPRequestHandler, HTTPServer
+now = datetime.now
+
+resultsfn = os.path.join(os.path.split(os.path.abspath(__file__))[0],"results.txt")
+roundsfn = os.path.join(os.path.split(os.path.abspath(__file__))[0],"rounds.txt")
+pointsfn = os.path.join(os.path.split(os.path.abspath(__file__))[0],"points.txt")
 
 class myRequestHandler(BaseHTTPRequestHandler):
     def _set_headers(self):
@@ -45,6 +48,10 @@ class myRequestHandler(BaseHTTPRequestHandler):
         data=self.rfile.read(int(self.headers.get('content-length',0)))
         if 'result' in self.path:
             open(resultsfn,'wb').write(data)
+        if 'rounds' in self.path:
+            open(roundsfn,'wb').write(data)
+        if 'points' in self.path:
+            open(pointsfn,'wb').write(data)
 
         self._set_headers()
         self.wfile.write("<html><body><h1>POST!</h1></body></html>".encode('utf8'))
@@ -128,8 +135,8 @@ def run(port=80):
     httpd._svg=None
     httpd._lastdata=None
     httpd._resultTS=None
-    httpd._config=readconfig(os.path.join(os.path.split(os.path.abspath(__file__))[0],"rounds.txt"))
-    httpd._points=readPoints(os.path.join(os.path.split(os.path.abspath(__file__))[0],"points.txt"))
+    httpd._config = readconfig(roundsfn)
+    httpd._points = readPoints(pointsfn)
     print('Starting httpd...')
     httpd.serve_forever()
 
