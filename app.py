@@ -43,7 +43,7 @@ def delivery(round):
 
 @app.route('/pickup<int:round>')
 def pickup(round):
-    return Response("Pickup point %i" % round)
+    return render_template("pickup.html", round=round)
 
 
 # somewhere to login
