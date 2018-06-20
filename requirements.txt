@@ -1,0 +1,12 @@
+click==6.7
+Flask==0.12.2
+Flask-Login==0.4.1
+Flask-QRcode==1.1.2
+itsdangerous==0.24
+Jinja2==2.10
+MarkupSafe==1.0
+Pillow==5.0.0
+PyQRCode==1.2.1
+qrcode==5.3
+six==1.11.0
+Werkzeug==0.14.1
