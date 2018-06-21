@@ -1,0 +1,7 @@
+[
+event(name='Round0', start=datetime(2018, 9, 14, 20, 00), end=datetime(2018, 9, 14, 21, 00), pickup='A1', dropoff='A3'),
+event(name='Round1', start=datetime(2018, 9, 15, 9, 00), end=datetime(2018, 9, 15, 10, 00), pickup='A8', dropoff='A3'),
+event(name='Round2', start=datetime(2018, 9, 15, 11, 00), end=datetime(2018, 9, 15, 12, 00), pickup='A2', dropoff='A5'),
+event(name='Round3', start=datetime(2018, 9, 15, 14, 00), end=datetime(2018, 9, 15, 15, 00), pickup='A4', dropoff='A2'),
+event(name='Round4', start=datetime(2018, 9, 15, 17, 00), end=datetime(2018, 9, 15, 18, 00), pickup='A9', dropoff='A1'),
+]

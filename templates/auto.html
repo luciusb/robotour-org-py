@@ -1,0 +1,9 @@
+{% extends "basic.html" %}
+{% block title %}{{ name }}{% endblock %}
+{% block head %}
+{% endblock %}
+{% block content %}
+{{ header }}
+  <h1> {{ name }}</h1>
+  <img src="{{ qrcode(qr)}}">
+{% endblock %}

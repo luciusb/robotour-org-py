@@ -1,0 +1,21 @@
+{% extends "basic.html" %}
+{% block title %} Program {% endblock %}
+{% block head %}
+{% endblock %}
+{% block content %}
+{{ header }}
+<table>
+  <tr>
+    <td> Round </td>
+    <td> Start </td>
+    <td> End </td>
+  </tr>
+{% for e in events %}
+  <tr>
+    <td>{{ e.name }}</td>
+    <td>{{ e.start.strftime("%H:%M" if now.date() == e.start.date() else "%d.%m.%Y %H:%M") }}</td>
+    <td>{{ e.end.strftime("%H:%M" if now.date() == e.end.date() else "%d.%m.%Y %H:%M") }}</td>
+  </tr>
+{% endfor %}
+</table>
+{% endblock %}
