@@ -112,7 +112,8 @@ def test():
         now = end[0]-timedelta(minutes=1)
         for event in events:
             if event.start < now < event.end:
-                return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(points[event.pickup]), refresh=5, header=header)
+                return render_template("auto.html", name=event.name + " pickup", qr="geo:%s,%s" % ll(points[event.pickup]), refresh=5, header=header) + \
+                        render_template("auto.html", name=event.name + " dropoff", qr="geo:%s,%s" % ll(points[event.dropoff]), refresh=5, header=header)
         else:
             return render_template("program.html", events=events, refresh=5, now=now, header=header)
 
