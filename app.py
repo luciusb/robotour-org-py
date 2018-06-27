@@ -83,9 +83,8 @@ def reload():
     global users_index
     global user_config
     users, points, events = readConfig(cfdir='admin')
-    events = [event(**e) for e in events]
     users_index = {u["username"]: User(**u) for u in users}
-    user_config[None] = Competition(points=points, events=events)
+    user_config[None] = Competition(points=points, events=parseEvents(events))
     for user in users_index.values():
         if user.role == 'user':
             reload_user(user.username)
@@ -127,11 +126,19 @@ class Competition:
         return t
 
 
+def parseEvents(revents):
+    events = []
+    for e in revents:
+        e["start"] = datetime.strptime(e["start"], "%d.%m.%Y %H:%M")
+        e["end"] = datetime.strptime(e["end"], "%d.%m.%Y %H:%M")
+        events.append(event(**e))
+    return events
+
+
 def reload_user(username):
     global user_config
     _, points, events = readConfig(cfdir=pjoin('users', username))
-    events = [event(**e) for e in events]
-    user_config[username] = Competition(points=points, events=events)
+    user_config[username] = Competition(points=points, events=parseEvents(events))
 
 
 reload()
