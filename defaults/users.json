@@ -1,0 +1,17 @@
+[
+    {
+        "username": "admin_user",
+        "password": "admin_password",
+        "role": "admin"
+    },
+    {
+        "username": "referee",
+        "password": "reefere",
+        "role": "referee"
+    },
+    {
+        "username": "test1",
+        "password": "test1",
+        "role": "user"
+    }
+]
