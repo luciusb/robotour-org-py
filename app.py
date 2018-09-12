@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 import os
 from os.path import join as pjoin, exists
 from data import reload, ll, User, reload_user, save_users, user_config, users_index
-from pdfs import create_pdf
 
 app = Flask(__name__)
 QRcode(app)
@@ -31,20 +30,9 @@ def delivery(round):
     return render_template("delivery.html", round=round)
 
 
-@app.route('/delivery<int:round>/pdf')
-@login_required
-def pdfdelivery(round):
-    create_pdf(render_template("delivery.html", round=round))
-
-
 @app.route('/pickup<int:round>')
 def pickup(round):
     return render_template("pickup.html", round=round)
-
-
-@app.route('/pickup<int:round>/pdf')
-def pdfpickup(round):
-    return create_pdf(render_template("pickup.html", round=round))
 
 
 @app.route('/')
