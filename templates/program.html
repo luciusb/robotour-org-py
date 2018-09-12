@@ -1,14 +1,16 @@
 {% extends "basic.html" %}
 {% block title %} Program {% endblock %}
 {% block head %}
+<meta http-equiv="refresh" content="5" >
+{{super()}}
 {% endblock %}
 {% block content %}
 {{ header }}
 <table>
   <tr>
-    <td> Round </td>
-    <td> Start </td>
-    <td> End </td>
+    <th> Round </th>
+    <th> Start </th>
+    <th> End </th>
   </tr>
 {% for e in events %}
   <tr>
@@ -18,4 +20,6 @@
   </tr>
 {% endfor %}
 </table>
+  <br>
+  <img src="{{ qrcode("http://live.robotour.cz/")}}">
 {% endblock %}

@@ -1,16 +1,15 @@
 from flask import Flask, Response, redirect, request, abort, render_template, flash, send_from_directory  # url_for
-from flask_login import LoginManager, UserMixin, login_required, logout_user, login_user, current_user
+from flask_login import LoginManager, login_required, logout_user, login_user, current_user
 from flask_qrcode import QRcode
 from datetime import datetime, timedelta
-from collections import namedtuple
 import os
 from os.path import join as pjoin, exists
-import json
+from data import reload, ll, User, reload_user, save_users, user_config, users_index
+from pdfs import create_pdf
 
 app = Flask(__name__)
 QRcode(app)
 
-user_config = {}
 
 # config
 app.config.update(
@@ -23,124 +22,6 @@ login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
 
-class DateTimeEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, datetime):
-            return o.strftime("%d.%m.%Y %H:%M")
-        return json.JSONEncoder.default(self, o)
-
-
-# silly user model
-class User(UserMixin):
-    def __init__(self, username, password, role='referee'):
-        # self.id = username
-        self.username = username
-        self.password = password
-        self.role = role
-
-    def __repr__(self):
-        return "User(username='%s', password='%s', role='%s')" % (self.username, self.password, self.role)
-
-    def get_id(self):
-        return self.username
-
-    def _asdict(self):
-        return self.__dict__
-
-
-event = namedtuple('event', ('name', 'start', 'end', 'pickup', 'dropoff'))
-
-
-# add_constructor(u'!User', User_constructor)
-
-
-def readConfig(cfdir):
-    """
-    default configs are in defaults directory and they get updated from github
-    user generated configs live in config directory and overide the default config
-
-    """
-    defaultsdir = 'defaults'
-    result = []
-    for fn in ('users.json', 'points.json', 'config.json'):
-        if exists(pjoin(cfdir, fn)):
-            fn = pjoin(cfdir, fn)
-        else:
-            fn = pjoin(defaultsdir, fn)
-        with open(fn, 'r') as f:
-            result.append(json.load(f))
-    return result
-
-
-def ll(latlon):
-    lat, lon = latlon.split()
-    lat = lat.split('=')[1]
-    lon = lon.split('=')[1]
-    return lat, lon
-
-
-def reload():
-    global users_index
-    global user_config
-    users, points, events = readConfig(cfdir='admin')
-    users_index = {u["username"]: User(**u) for u in users}
-    user_config[None] = Competition(points=points, events=parseEvents(events))
-    for user in users_index.values():
-        if user.role == 'user':
-            reload_user(user.username)
-
-
-def timeranges(events):
-    if not events:
-        return
-    times = []
-    for i, event in enumerate(events):
-        times.append((event.start, 'start', i))
-        times.append((event.end, 'end', i))
-    times.sort()
-    yield (None, times[0])
-    for s, e in zip(times, times[1:]):
-        yield (s, e)
-    yield (times[-1], None)
-
-
-class Competition:
-    def __init__(self, points, events):
-        self.events = events
-        self.points = points
-        self.times = list(timeranges(events))
-        self.testindex = 0
-
-    def getEvent(self, time):
-        for event in self.events:
-            if event.start < time < event.end:
-                return event
-        else:
-            return None
-
-    def test(self):
-        t = self.times[self.testindex]
-        self.testindex += 1
-        if self.testindex >= len(self.times):
-            self.testindex = 0
-        return t
-
-
-def parseEvents(revents):
-    events = []
-    for e in revents:
-        e["start"] = datetime.strptime(e["start"], "%d.%m.%Y %H:%M")
-        e["end"] = datetime.strptime(e["end"], "%d.%m.%Y %H:%M")
-        events.append(event(**e))
-    return events
-
-
-def reload_user(username):
-    global user_config
-    _, points, events = readConfig(cfdir=pjoin('users', username))
-    user_config[username] = Competition(points=points, events=parseEvents(events))
-
-
 reload()
 
 
@@ -150,9 +31,20 @@ def delivery(round):
     return render_template("delivery.html", round=round)
 
 
+@app.route('/delivery<int:round>/pdf')
+@login_required
+def pdfdelivery(round):
+    create_pdf(render_template("delivery.html", round=round))
+
+
 @app.route('/pickup<int:round>')
 def pickup(round):
     return render_template("pickup.html", round=round)
+
+
+@app.route('/pickup<int:round>/pdf')
+def pdfpickup(round):
+    return create_pdf(render_template("pickup.html", round=round))
 
 
 @app.route('/')
@@ -160,7 +52,8 @@ def auto(user=None):
     now = datetime.now()
     for event in user_config[user].events:
         if event.start < now < event.end:
-            return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(user_config[user].points[event.start], refresh=5))
+            config = user_config[user]
+            return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.start], refresh=5))
     else:
         return render_template("program.html", events=user_config[user].events, refresh=5, now=now)
 
@@ -168,7 +61,6 @@ def auto(user=None):
 @app.route('/test')
 @login_required
 def test():
-    global user_config
     if current_user.role in ('admin', 'referee'):
         user = None
     elif current_user.role == 'user':
@@ -203,6 +95,7 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        print("XXX", users_index)
         if username in users_index and password == users_index[username].password:
             login_user(users_index[username])
             return redirect(request.args.get("next"))
@@ -218,15 +111,8 @@ def login():
         ''')
 
 
-def save_users(users):
-    with open(pjoin('admin', 'users.json'), 'w') as f:
-        data = [u._asdict() for u in users]
-        json.dump(data, f, cls=DateTimeEncoder, indent=4)
-
-
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    global users_index
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -244,9 +130,6 @@ def register():
         return redirect('/config')
     else:
         return render_template('register.html')
-
-# @app.route("/user")
-# def user
 
 
 # somewhere to logout
