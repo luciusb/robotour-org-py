@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% block head %}
     <link rel="stylesheet" href="style.css" />
-    <title>{% block title %}{% endblock %} - My Webpage</title>
+    <title>{% block title %}Robotour 2018{% endblock %}</title>
     
     <script>
     function startTime() {
@@ -23,10 +23,23 @@
         return i;
     }
     </script>
+    {% if refresh %}
+        <meta http-equiv="refresh" content="{{refresh}}" >
+    {% endif %}
     {% endblock %}
 </head>
 
 <body onload="startTime()">
+
+{% block header %}
+  {% if current_user %}
+    <div align="right">
+        {{ "Logged in as %s (%s)" % (current_user.username, current_user.role)}}
+        <a href="{{ url_for('logout') }}">log out</a>
+    </div>
+  {% endif %}
+
+
     <h1> Robotour 2018 </h1>
 {% with messages = get_flashed_messages() %}
   {% if messages %}
@@ -37,12 +50,12 @@
     </ul>
   {% endif %}
 {% endwith %}
+{% endblock %}
 
 <div id="txt"></div>
 <div id="content">{% block content %}{% endblock %}</div>
     {% block footer %}
     {% endblock %}
-    </div>
 </body>
 </html>
 

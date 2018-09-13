@@ -27,12 +27,16 @@ reload()
 @app.route('/delivery<int:round>')
 @login_required
 def delivery(round):
-    return render_template("delivery.html", round=round)
+    config = user_config[None]
+    event = config.events[round]
+    return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.dropoff], refresh=5))
 
 
 @app.route('/pickup<int:round>')
 def pickup(round):
-    return render_template("pickup.html", round=round)
+    config = user_config[None]
+    event = config.events[round]
+    return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.pickup], refresh=5))
 
 
 @app.route('/')
@@ -43,7 +47,7 @@ def auto(user=None):
             config = user_config[user]
             return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.start], refresh=5))
     else:
-        return render_template("program.html", events=user_config[user].events, refresh=5, now=now)
+        return render_template("program.html", events=user_config[user].events, refresh=15, now=now)
 
 
 @app.route('/test')
@@ -58,10 +62,10 @@ def test():
         redirect('/')
     start, end = user_config[user].test()
     if not start:
-        return render_template("program.html", events=user_config[user].events, refresh=5, now=end[0]-timedelta(minutes=1),
+        return render_template("program.html", events=user_config[user].events, refresh=0, now=end[0]-timedelta(minutes=1),
                                header="Till %s" % end[0].strftime("%d.%m.%Y %H:%M"))
     elif not end:
-        return render_template("program.html", events=user_config[user].events, refresh=5, now=start[0]+timedelta(minutes=1),
+        return render_template("program.html", events=user_config[user].events, refresh=0, now=start[0]+timedelta(minutes=1),
                                header="after %s" % start[0].strftime("%d.%m.%Y %H:%M"))
     else:
         header = "from %s to %s" % (start[0].strftime("%d.%m.%Y %H:%M"), end[0].strftime("%d.%m.%Y %H:%M"))
@@ -71,10 +75,10 @@ def test():
             print(repr(user_config[user].points))
             pickup = ll(user_config[user].points[event.pickup])
             dropoff = ll(user_config[user].points[event.dropoff])
-            return render_template("auto.html", name=event.name + " pickup", qr="geo:%s,%s" % pickup, refresh=5, header=header) + \
-                render_template("auto.html", name=event.name + " dropoff", qr="geo:%s,%s" % dropoff, refresh=5, header=header)
+            return render_template("auto.html", name=event.name + " pickup", qr="geo:%s,%s" % pickup, refresh=0, header=header) + \
+                render_template("auto.html", name=event.name + " dropoff", qr="geo:%s,%s" % dropoff, refresh=0, header=header)
         else:
-            return render_template("program.html", events=user_config[user].events, refresh=5, now=now, header=header)
+            return render_template("program.html", events=user_config[user].events, refresh=0, now=now, header=header)
 
 
 # somewhere to login
