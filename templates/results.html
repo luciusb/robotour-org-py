@@ -1,0 +1,35 @@
+{% extends "basic.html" %}
+{% block title %} Results {% endblock %}
+{% block head %}
+{{super()}}
+<style>
+table, th, td {
+   border: 1px solid black;
+   text-align: center;
+   padding: 15px;
+}
+table {
+    border-collapse: collapse;
+}
+</style>
+{% endblock %}
+{% block content %}
+<table>
+  <tr>
+    <th></th>
+    {% for rn in rounds %}
+        <th>{{rn}}</th>
+    {% endfor %}
+    <th>Total</th>
+  </tr>
+{% for line in results %}
+  <tr>
+    <td>{{ line.name }}</td>
+    {% for round in line.rounds %}
+        <td>{{round}}</td>
+    {% endfor %}
+    <td>{{ line.total }}</td>
+  </tr>
+{% endfor %}
+</table>
+{% endblock %}

@@ -3,6 +3,7 @@ from collections import namedtuple
 from datetime import datetime
 from os.path import join as pjoin, exists
 import json
+from decimal import Decimal
 
 user_config = {}
 users_index = {}
@@ -47,7 +48,7 @@ def readConfig(cfdir):
     """
     defaultsdir = 'defaults'
     result = []
-    for fn in ('users.json', 'points.json', 'config.json'):
+    for fn in ('users.json', 'points.json', 'config.json', 'results.json'):
         if exists(pjoin(cfdir, fn)):
             fn = pjoin(cfdir, fn)
         else:
@@ -65,10 +66,10 @@ def ll(latlon):
 
 
 def reload():
-    users, points, events = readConfig(cfdir='admin')
+    users, points, events, results = readConfig(cfdir='admin')
     for u in users:
         users_index[u["username"]] = User(**u)
-    user_config[None] = Competition(points=points, events=parseEvents(events))
+    user_config[None] = Competition(points=points, events=parseEvents(events), results=results)
     for user in users_index.values():
         if user.role == 'user':
             reload_user(user.username)
@@ -76,8 +77,8 @@ def reload():
 
 
 def reload_user(username):
-    _, points, events = readConfig(cfdir=pjoin('users', username))
-    user_config[username] = Competition(points=points, events=parseEvents(events))
+    _, points, events, _2 = readConfig(cfdir=pjoin('users', username))
+    user_config[username] = Competition(points=points, events=parseEvents(events), results=None)
 
 
 def timeranges(events):
@@ -95,9 +96,32 @@ def timeranges(events):
 
 
 class Competition:
-    def __init__(self, points, events):
+    def __init__(self, points, events, results=None):
         self.events = events
+        maxrounds = len(events)
         self.points = points
+        if results:
+            # maxrounds = max((len(x["rounds"]) for x in results))
+            # self.rounds = ["Round%i" % i for i in range(maxrounds)]
+            team_id = 0
+            for team in results:
+                total = Decimal()
+                rounds = []
+                for i in range(maxrounds):
+                    if i >= len(team["rounds"]):
+                        rounds.append("")
+                    else:
+                        rounds.append(team["rounds"][i])
+                        try:
+                            total += Decimal(team["rounds"][i])
+                        except:
+                            pass
+                team["id"] = team_id
+                team_id += 1
+                team["rounds"] = rounds
+                team["total"] = total
+            results.sort(key=lambda x: x["total"], reverse=True)
+        self.results = results
         self.times = list(timeranges(events))
         self.testindex = 0
 

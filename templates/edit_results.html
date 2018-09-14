@@ -1,0 +1,39 @@
+{% extends "basic.html" %}
+{% block title %} Results {% endblock %}
+{% block head %}
+{{super()}}
+<style>
+table, th, td {
+   border: 1px solid black;
+   text-align: center;
+   padding: 15px;
+}
+table {
+    border-collapse: collapse;
+}
+</style>
+{% endblock %}
+{% block content %}
+<form name="myform" method="post">
+<table>
+  <tr>
+    <th></th>
+    {% for rn in rounds %}
+        <th>{{rn}}</th>
+    {% endfor %}
+    <th>Total</th>
+  </tr>
+{% for line in results %}
+  <tr>
+      <td>{{ line.name }} A {{line.id}}</td>
+    {% for id, round in line.rounds %}
+    <td> <input name="{{id}}" id="{{id}}" value="{{round}}" size="4"></td>
+    {% endfor %}
+    <td>{{ line.total }}</td>
+  </tr>
+{% endfor %}
+</table>
+<input type="submit" value="Update">
+</form>
+
+{% endblock %}

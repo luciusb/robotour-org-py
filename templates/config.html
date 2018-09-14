@@ -5,18 +5,28 @@
 {% block content %}
     <h1>Upload configuration File</h1>
     <form method=post enctype=multipart/form-data>
-        <label for="points">Points file (points.txt): </label>
+        <label for="points">Points file (points.json): </label>
         <input type="file" name="points" id="points">
         <a href="download/points.json">points.json</a>
         <br>
-        <label for="config">Config file (config.txt): </label>
+        <label for="config">Config file (config.json): </label>
         <input type="file" name="config", id="config">
         <a href="download/config.json">config.json</a>
         <br>
         {% if admin %}
-            <label for="users">Users file (users.txt): </label>
+            <label for="users">Users file (users.json): </label>
             <input type="file" name="users", id="users">
             <a href="download/users.json">users.json</a>
+            <br>
+
+            <label for="teams">Teams (teams.json): </label>
+            <input type="file" name="teams", id="teams">
+            <a href="download/teams.json">teams.json</a>
+            <br>
+            
+            <label for="users">Results file (results.json): </label>
+            <input type="file" name="results", id="results">
+            <a href="download/results.json">results.json</a>
             <br>
         {% endif %}
         <input type=submit value=Upload>

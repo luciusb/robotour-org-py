@@ -50,6 +50,32 @@ def auto(user=None):
         return render_template("program.html", events=user_config[user].events, refresh=15, now=now)
 
 
+@app.route('/results')
+def results(user=None):
+    c = user_config[None]
+    return render_template("results.html", results=c.results, rounds=[e.name for e in c.events], refresh=15)
+
+
+@app.route('/resultse', methods=["GET", "POST"])
+@login_required
+def results_edit(user=None):
+    if current_user.role in ('admin', 'referee'):
+        c = user_config[None]
+        if request.method == 'POST':
+            for team in c.results:
+                team["rounds"] = [request.form["i%03i%03i" % (team["id"], i)] for i in range(len(c.events))]
+        r = []
+        for i, res in enumerate(c.results):
+            r.append({"name": res["name"],
+                      "rounds": [("i%03i%03i" % (res["id"], j), r) for j, r in enumerate(res["rounds"])],
+                      "id": res["id"],
+                      "total": res["total"]
+                      })
+        return render_template("edit_results.html", results=r, rounds=[e.name for e in c.events], refresh=0)
+    else:
+        redirect('/results')
+
+
 @app.route('/test')
 @login_required
 def test():
@@ -153,7 +179,7 @@ def upload_file():
         else:
             cfdir = pjoin('users', current_user.username)
         need_reload = False
-        for input_name in ('users', 'points', 'config', 'file'):
+        for input_name in ('users', 'points', 'config', 'file', 'teams', 'results'):
             # check if the post request has the file part
             if input_name in request.files:
                 file = request.files[input_name]
@@ -180,7 +206,7 @@ def upload_file():
 @login_required
 def download(filename):
     if current_user.role == 'admin':
-        if filename in ('config.json', 'points.json', 'users.json'):
+        if filename in ('config.json', 'points.json', 'users.json', 'results.json', 'teams.json'):
             if exists(pjoin('admin', filename)):
                 dir = 'admin'
             else:
