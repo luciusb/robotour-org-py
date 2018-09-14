@@ -16,6 +16,13 @@ class DateTimeEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, Decimal):
+            return str(o)
+        return json.JSONEncoder.default(self, o)
+
+
 # silly user model
 class User(UserMixin):
     def __init__(self, username, password, role='referee'):
@@ -95,32 +102,31 @@ def timeranges(events):
     yield (times[-1], None)
 
 
+def update_results(results, roundscnt):
+    for team in results:
+        total = Decimal()
+        rounds = []
+        for i in range(roundscnt):
+            if i >= len(team["rounds"]):
+                rounds.append("")
+            else:
+                rounds.append(team["rounds"][i])
+                try:
+                    total += Decimal(team["rounds"][i])
+                except:
+                    pass
+        team["rounds"] = rounds
+        team["total"] = total
+    results.sort(key=lambda x: x["total"], reverse=True)
+    return results
+
+
 class Competition:
     def __init__(self, points, events, results=None):
         self.events = events
-        maxrounds = len(events)
         self.points = points
         if results:
-            # maxrounds = max((len(x["rounds"]) for x in results))
-            # self.rounds = ["Round%i" % i for i in range(maxrounds)]
-            team_id = 0
-            for team in results:
-                total = Decimal()
-                rounds = []
-                for i in range(maxrounds):
-                    if i >= len(team["rounds"]):
-                        rounds.append("")
-                    else:
-                        rounds.append(team["rounds"][i])
-                        try:
-                            total += Decimal(team["rounds"][i])
-                        except:
-                            pass
-                team["id"] = team_id
-                team_id += 1
-                team["rounds"] = rounds
-                team["total"] = total
-            results.sort(key=lambda x: x["total"], reverse=True)
+            results = update_results(results, roundscnt=len(events))
         self.results = results
         self.times = list(timeranges(events))
         self.testindex = 0
@@ -147,6 +153,11 @@ def parseEvents(revents):
         e["end"] = datetime.strptime(e["end"], "%d.%m.%Y %H:%M")
         events.append(event(**e))
     return events
+
+
+def save_results(results):
+    with open(pjoin('admin', 'results.json'), 'w') as f:
+        json.dump(results, f, cls=DecimalEncoder, indent=4)
 
 
 def save_users(users):

@@ -25,7 +25,7 @@ table {
   </tr>
 {% for line in results %}
   <tr>
-      <td>{{ line.name }} A {{line.id}}</td>
+      <td>{{ line.name }} </td>
     {% for id, round in line.rounds %}
     <td> <input name="{{id}}" id="{{id}}" value="{{round}}" size="4"></td>
     {% endfor %}

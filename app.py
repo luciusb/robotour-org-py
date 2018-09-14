@@ -4,7 +4,7 @@ from flask_qrcode import QRcode
 from datetime import datetime, timedelta
 import os
 from os.path import join as pjoin, exists
-from data import reload, ll, User, reload_user, save_users, user_config, users_index
+from data import reload, ll, User, reload_user, save_users, user_config, users_index, save_results, update_results
 
 app = Flask(__name__)
 QRcode(app)
@@ -64,6 +64,8 @@ def results_edit(user=None):
         if request.method == 'POST':
             for team in c.results:
                 team["rounds"] = [request.form["i%03i%03i" % (team["id"], i)] for i in range(len(c.events))]
+            c.results = update_results(c.results, len(c.events))
+            save_results(c.results)
         r = []
         for i, res in enumerate(c.results):
             r.append({"name": res["name"],
@@ -113,7 +115,6 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        print("XXX", users_index)
         if username in users_index and password == users_index[username].password:
             login_user(users_index[username])
             return redirect(request.args.get("next"))
@@ -121,6 +122,7 @@ def login():
             return abort(401)
     else:
         return Response('''
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <form action="" method="post">
             <p><input type=text name=username>
             <p><input type=password name=password>
