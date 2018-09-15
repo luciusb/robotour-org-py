@@ -111,10 +111,12 @@ def update_results(results, roundscnt):
                 rounds.append("")
             else:
                 rounds.append(team["rounds"][i])
-                try:
-                    total += Decimal(team["rounds"][i])
-                except:
-                    pass
+                # ignore the 0.th round
+                if i > 0:
+                    try:
+                        total += Decimal(team["rounds"][i])
+                    except:
+                        pass
         team["rounds"] = rounds
         team["total"] = total
     results.sort(key=lambda x: x["total"], reverse=True)
