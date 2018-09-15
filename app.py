@@ -48,7 +48,7 @@ def auto(user=None):
             config = user_config[user]
             return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.pickup]), refresh=5)
     else:
-        return render_template("program.html", events=user_config[user].events, refresh=15, now=now)
+        return render_template("program.html", events=user_config[user].events, refresh=15, now=now, additional=now)
 
 
 @app.route('/results')
