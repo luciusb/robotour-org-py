@@ -41,14 +41,14 @@ def pickup(round):
 
 @app.route('/')
 def auto(user=None):
-    now = datetime.now()
+    now = datetime.utcnow() + timedelta(hours=2)
     for event in user_config[user].events:
         print(event.start, now, event.end)
         if event.start < now < event.end:
             config = user_config[user]
             return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.pickup]), refresh=5)
     else:
-        return render_template("program.html", events=user_config[user].events, refresh=15, now=now, additional=now)
+        return render_template("program.html", events=user_config[user].events, refresh=15, now=now, additional="")
 
 
 @app.route('/results')
