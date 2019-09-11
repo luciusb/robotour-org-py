@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 import os
 from os.path import join as pjoin, exists
 from data import reload, ll, User, reload_user, save_users, user_config, users_index, save_results, update_results
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 QRcode(app)
@@ -21,8 +23,13 @@ login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
 
-reload()
+@app.context_processor
+def reloadContext():
+    print("Reload context")
+    return {"comp_name": user_config[None].name}
 
+reload()
+reloadContext()
 
 @app.route('/delivery<int:round>')
 @login_required
@@ -41,9 +48,8 @@ def pickup(round):
 
 @app.route('/')
 def auto(user=None):
-    now = datetime.utcnow() + timedelta(hours=2)
+    now = datetime.utcnow() + timedelta(hours=user_config[user].utc_offset)
     for event in user_config[user].events:
-        print(event.start, now, event.end)
         if event.start < now < event.end:
             config = user_config[user]
             return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.pickup]), refresh=5)
@@ -175,7 +181,7 @@ def load_user(userid):
 
 @app.route('/config', methods=['GET', 'POST'])
 @login_required
-def upload_file():
+def config():
     if request.method == 'POST':
         if current_user.role == 'admin':
             cfdir = 'admin'
@@ -198,7 +204,7 @@ def upload_file():
             flash('No file selected')
         if need_reload:
             if current_user.role == 'admin':
-                reload()
+                reloadContext()
             else:
                 reload_user(current_user.username)
         return redirect(request.url)

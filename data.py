@@ -1,9 +1,11 @@
+import sys
 from flask_login import UserMixin
 from collections import namedtuple
 from datetime import datetime
 from os.path import join as pjoin, exists
 import json
 from decimal import Decimal
+import logging
 
 user_config = {}
 users_index = {}
@@ -73,10 +75,11 @@ def ll(latlon):
 
 
 def reload():
-    users, points, events, results = readConfig(cfdir='admin')
+    users, points, config, results = readConfig(cfdir='admin')
     for u in users:
         users_index[u["username"]] = User(**u)
-    user_config[None] = Competition(points=points, events=parseEvents(events), results=results)
+    name, utc_offset, events = parseEvents(config)
+    user_config[None] = Competition(name=name, utc_offset=utc_offset, points=points, events=events, results=results)
     for user in users_index.values():
         if user.role == 'user':
             reload_user(user.username)
@@ -84,8 +87,9 @@ def reload():
 
 
 def reload_user(username):
-    _, points, events, _2 = readConfig(cfdir=pjoin('users', username))
-    user_config[username] = Competition(points=points, events=parseEvents(events), results=None)
+    _, points, config, _2 = readConfig(cfdir=pjoin('users', username))
+    name, utc_offset, events = parseEvents(config)
+    user_config[username] = Competition(name=name, utc_offset=utc_offset, points=points, events=events, results=None)
 
 
 def timeranges(events):
@@ -124,7 +128,9 @@ def update_results(results, roundscnt):
 
 
 class Competition:
-    def __init__(self, points, events, results=None):
+    def __init__(self, name, utc_offset, points, events, results=None):
+        self.name = name
+        self.utc_offset = utc_offset
         self.events = events
         self.points = points
         if results:
@@ -142,19 +148,22 @@ class Competition:
 
     def test(self):
         t = self.times[self.testindex]
+        logging.info("AHOJ" + str(self.testindex))
         self.testindex += 1
+        print(self.times, file=sys.stderr)
         if self.testindex >= len(self.times):
             self.testindex = 0
+        logging.info("ahoj" + str(self.testindex)+str(self))
         return t
 
 
-def parseEvents(revents):
+def parseEvents(config):
     events = []
-    for e in revents:
+    for e in config["events"]:
         e["start"] = datetime.strptime(e["start"], "%d.%m.%Y %H:%M")
         e["end"] = datetime.strptime(e["end"], "%d.%m.%Y %H:%M")
         events.append(event(**e))
-    return events
+    return config["name"], config["utc_offset"], events
 
 
 def save_results(results):

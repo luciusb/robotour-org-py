@@ -4,8 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% block head %}
     <link rel="stylesheet" href="style.css" />
-    <title>{% block title %}Robotour 2018{% endblock %}</title>
-    
+    <title>{% block title %} {{ comp_name }}{% endblock %}</title>
     <script>
     function startTime() {
         var today = new Date();
@@ -32,17 +31,24 @@
 <body onload="startTime()">
 
 {% block header %}
-  {% if current_user %}
+  {% if current_user.is_authenticated %}
     <div align="right">
         {{ "Logged in as %s (%s)" % (current_user.username, current_user.role)}}
+        {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('config') }}">config</a>
+        {% endif %}
         <a href="{{ url_for('logout') }}">log out</a>
     </div>
+  {% else %}
+    <div align="right">
+    <a href = "{{ url_for('login') }}">login</a>
+    </div>
   {% endif %}
-  <a href = "http://live.robotour.cz/results">results</a>
+  <a href = "{{ url_for('results') }}">results</a>
   <br>
 
 
-    <h1> Robotour 2018 </h1>
+    <h1> {{ comp_name }} </h1>
 {% with messages = get_flashed_messages() %}
   {% if messages %}
     <ul class=flashes>
