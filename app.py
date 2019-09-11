@@ -204,6 +204,7 @@ def config():
             flash('No file selected')
         if need_reload:
             if current_user.role == 'admin':
+                reload()
                 reloadContext()
             else:
                 reload_user(current_user.username)
