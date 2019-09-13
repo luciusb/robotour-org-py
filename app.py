@@ -52,9 +52,10 @@ def getround(user):
     for i, event in enumerate(user_config[user].events):
         if event.start < now < event.end:
             config = user_config[user]
+            print("d", i)
             return i
-        else:
-            return None
+    else:
+        return None
 
 
 @app.route('/delivery')
@@ -62,7 +63,7 @@ def getround(user):
 def delivery(user=None):
     round = getround(user)
     config = user_config[None]
-    if round:
+    if round is not None:
         event = config.events[round]
         return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.dropoff]), refresh=5)
     else:
@@ -73,7 +74,7 @@ def delivery(user=None):
 def pickup(user=None):
     round = getround(user)
     config = user_config[None]
-    if round:
+    if round is not None:
         event = config.events[round]
         return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.pickup]), refresh=5)
     else:
