@@ -65,7 +65,7 @@ def delivery(user=None):
     config = user_config[None]
     if round is not None:
         event = config.events[round]
-        return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.dropoff]), refresh=5)
+        return render_template("auto.html", name=event.name + " delivery", qr="geo:%s,%s" % ll(config.points[event.dropoff]), refresh=5)
     else:
         return Response("No active round now")
 
@@ -76,7 +76,7 @@ def pickup(user=None):
     config = user_config[None]
     if round is not None:
         event = config.events[round]
-        return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.pickup]), refresh=5)
+        return render_template("auto.html", name=event.name+ " pickup", qr="geo:%s,%s" % ll(config.points[event.pickup]), refresh=5)
     else:
         return Response("No active round now")
 
