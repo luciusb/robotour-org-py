@@ -63,6 +63,16 @@ def results(user=None):
     return render_template("results.html", results=c.results, rounds=[e.name for e in c.events], refresh=15)
 
 
+@app.route('/time')
+def serverTime(user=None):
+    now = datetime.utcnow()
+    return Response('''
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    Server time: %s <br>
+    Time at competition: %s
+    '''% (now.strftime("%H:%M"), (now + timedelta(hours=user_config[user].utc_offset)).strftime("%H:%M")))
+
+
 @app.route('/resultse', methods=["GET", "POST"])
 @login_required
 def results_edit(user=None):
