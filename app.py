@@ -24,27 +24,60 @@ login_manager.login_view = "login"
 
 
 @app.context_processor
-def reloadContext():
+def reloadContext(user=None):
     print("Reload context")
-    return {"comp_name": user_config[None].name}
+    return {"comp_name": user_config[None].name, "round": round}
 
 reload()
 reloadContext()
 
+"""
 @app.route('/delivery<int:round>')
 @login_required
 def delivery(round):
     config = user_config[None]
     event = config.events[round]
-    return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.dropoff], refresh=5))
+    return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.dropoff]), refresh=5)
 
 
 @app.route('/pickup<int:round>')
 def pickup(round):
     config = user_config[None]
     event = config.events[round]
-    return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.pickup], refresh=5))
+    return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.pickup]), refresh=5)
+"""
 
+def getround(user):
+    now = datetime.utcnow() + timedelta(hours=user_config[user].utc_offset)
+    for i, event in enumerate(user_config[user].events):
+        if event.start < now < event.end:
+            config = user_config[user]
+            return i
+        else:
+            return None
+
+
+@app.route('/delivery')
+@login_required
+def delivery(user=None):
+    round = getround(user)
+    config = user_config[None]
+    if round:
+        event = config.events[round]
+        return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.dropoff]), refresh=5)
+    else:
+        return Response("No active round now")
+
+
+@app.route('/pickup')
+def pickup(user=None):
+    round = getround(user)
+    config = user_config[None]
+    if round:
+        event = config.events[round]
+        return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.pickup]), refresh=5)
+    else:
+        return Response("No active round now")
 
 @app.route('/')
 def auto(user=None):
@@ -231,14 +264,14 @@ def download(filename):
                 dir = 'admin'
             else:
                 dir = 'defaults'
-            return send_from_directory(dir, filename)
+            return send_from_directory(dir, filename, cache_timeout=1)
     elif current_user.role == 'user':
         if filename in ('config.json', 'points.json'):
             if exists(pjoin('users', current_user.username, filename)):
                 dir = pjoin('users', current_user.username)
             else:
                 dir = 'defaults'
-            return send_from_directory(dir, filename)
+            return send_from_directory(dir, filename, cache_timeout=1)
     return abort(401)
 
 
