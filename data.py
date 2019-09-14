@@ -188,10 +188,11 @@ def parseEvents(config):
         e["start"] = datetime.strptime(e["start"], "%d.%m.%Y %H:%M")
         e["end"] = datetime.strptime(e["end"], "%d.%m.%Y %H:%M")
         events.append(event(**e))
-    for e in config["meetings"]:
-        e["start"] = datetime.strptime(e["start"], "%d.%m.%Y %H:%M")
-        e["end"] = datetime.strptime(e["end"], "%d.%m.%Y %H:%M")
-        meetings.append(event(**e))
+    if "meetings" in config:
+        for e in config["meetings"]:
+            e["start"] = datetime.strptime(e["start"], "%d.%m.%Y %H:%M")
+            e["end"] = datetime.strptime(e["end"], "%d.%m.%Y %H:%M")
+            meetings.append(event(**e))
     return config["name"], config["utc_offset"], events, meetings
 
 
