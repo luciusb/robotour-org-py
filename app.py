@@ -155,9 +155,36 @@ def test():
             pickup = ll(user_config[user].points[event.pickup])
             dropoff = ll(user_config[user].points[event.dropoff])
             return render_template("auto.html", name=event.name + " pickup", qr="geo:%s,%s" % pickup, refresh=0, header=header) + \
-                render_template("auto.html", name=event.name + " dropoff", qr="geo:%s,%s" % dropoff, refresh=0, header=header)
+                render_template("auto.html", name=event.name + " delivery", qr="geo:%s,%s" % dropoff, refresh=0, header=header)
         else:
             return render_template("program.html", events=user_config[user].events, refresh=0, now=now, header=header)
+
+@app.route('/print')
+@login_required
+def prinert():
+    if current_user.role in ('admin'):
+        user = None
+    elif current_user.role == 'user':
+        user = current_user.username
+    else:
+        flash("printing is not accesible for %s role: %s" % (current_user.username, current_user.role))
+        redirect('/')
+    event, is_pickup = user_config[user].printer()
+    if event is None:
+        point = ll(user_config[user].points["HOME"])
+        name = "Service area"
+        notes = "Center of service area"
+        header = ""
+    else:
+        header = "from %s to %s" % (event.start.strftime("%d.%m.%Y %H:%M"), event.end.strftime("%d.%m.%Y %H:%M"))
+        if is_pickup:
+            point = ll(user_config[user].points[event.pickup])
+            name = event.name + " pickup"
+        else:
+            point = ll(user_config[user].points[event.dropoff])
+            name = event.name + " delivery"
+        notes = event.notes
+    return render_template("print.html", name=name, qr="geo:%s,%s" % point, header=header, notes=notes, coords = "geo:%s,%s" % point )
 
 
 # somewhere to login

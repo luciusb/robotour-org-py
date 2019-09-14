@@ -43,7 +43,7 @@ class User(UserMixin):
         return self.__dict__
 
 
-event = namedtuple('event', ('name', 'start', 'end', 'pickup', 'dropoff'))
+event = namedtuple('event', ('name', 'start', 'end', 'pickup', 'dropoff', 'notes'))
 
 
 # add_constructor(u'!User', User_constructor)
@@ -138,6 +138,8 @@ class Competition:
         self.results = results
         self.times = list(timeranges(events))
         self.testindex = 0
+        self.printerindex = 0
+        self.printer_pickup = True
 
     def getEvent(self, time):
         for event in self.events:
@@ -148,13 +150,20 @@ class Competition:
 
     def test(self):
         t = self.times[self.testindex]
-        logging.info("AHOJ" + str(self.testindex))
         self.testindex += 1
-        print(self.times, file=sys.stderr)
         if self.testindex >= len(self.times):
             self.testindex = 0
-        logging.info("ahoj" + str(self.testindex)+str(self))
         return t
+
+    def printer(self):
+        if self.printerindex >= len(self.events):
+            self.printerindex = 0
+            return None, False
+        result = self.events[self.printerindex], self.printer_pickup
+        self.printer_pickup = not self.printer_pickup
+        if self.printer_pickup:
+            self.printerindex +=1
+        return result
 
 
 def parseEvents(config):

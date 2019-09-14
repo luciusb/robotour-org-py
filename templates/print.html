@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{% block head %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css" />
+    <title>{% block title %} {{ name }}{% endblock %}</title>
+{% endblock %}
+</head>
+
+<body>
+{% block content %}
+{{ header }}
+  <h1> {{ name }}</h1>
+  <img src="{{ qrcode(qr)}}">
+  <br>
+  <h2>{{ coords }}</h2>
+  <br>
+  <br>
+  <br>
+  {{ notes }}
+{% endblock %}
+</body>
+</html>
