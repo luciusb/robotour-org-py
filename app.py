@@ -88,12 +88,12 @@ def home(user=None):
 @app.route('/')
 def auto(user=None):
     now = datetime.utcnow() + timedelta(hours=user_config[user].utc_offset)
-    for event in user_config[user].events:
+    for event in user_config[user].getEvents(include_meetings=True):
         if event.start < now < event.end:
             config = user_config[user]
             return render_template("auto.html", name=event.name, qr="geo:%s,%s" % ll(config.points[event.pickup]), refresh=5)
     else:
-        return render_template("program.html", events=user_config[user].events, refresh=15, now=now, additional="")
+        return render_template("program.html", events=user_config[user].getEvents(include_meetings=True), refresh=15, now=now, additional="")
 
 
 @app.route('/results')
@@ -144,17 +144,17 @@ def test():
     else:
         flash("Testing is not accesible for %s role: %s" % (current_user.username, current_user.role))
         redirect('/')
-    start, end = user_config[user].test()
+    start, end = user_config[user].test(include_meetings=True)
     if not start:
-        return render_template("program.html", events=user_config[user].events, refresh=0, now=end[0]-timedelta(minutes=1),
+        return render_template("program.html", events=user_config[user].getEvents(include_meetings=True), refresh=0, now=end[0]-timedelta(minutes=1),
                                header="Till %s" % end[0].strftime("%d.%m.%Y %H:%M"))
     elif not end:
-        return render_template("program.html", events=user_config[user].events, refresh=0, now=start[0]+timedelta(minutes=1),
+        return render_template("program.html", events=user_config[user].getEvents(include_meetings=True), refresh=0, now=start[0]+timedelta(minutes=1),
                                header="after %s" % start[0].strftime("%d.%m.%Y %H:%M"))
     else:
         header = "from %s to %s" % (start[0].strftime("%d.%m.%Y %H:%M"), end[0].strftime("%d.%m.%Y %H:%M"))
         now = end[0]-timedelta(minutes=1)
-        event = user_config[user].getEvent(now)
+        event = user_config[user].getEvent(now, include_meetings=True)
         if event:
             print(repr(user_config[user].points))
             pickup = ll(user_config[user].points[event.pickup])
@@ -162,7 +162,7 @@ def test():
             return render_template("auto.html", name=event.name + " pickup", qr="geo:%s,%s" % pickup, refresh=0, header=header) + \
                 render_template("auto.html", name=event.name + " delivery", qr="geo:%s,%s" % dropoff, refresh=0, header=header)
         else:
-            return render_template("program.html", events=user_config[user].events, refresh=0, now=now, header=header)
+            return render_template("program.html", events=user_config[user].getEvents(include_meetings=True), refresh=0, now=now, header=header)
 
 @app.route('/print')
 @login_required

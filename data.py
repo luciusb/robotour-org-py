@@ -78,8 +78,8 @@ def reload():
     users, points, config, results = readConfig(cfdir='admin')
     for u in users:
         users_index[u["username"]] = User(**u)
-    name, utc_offset, events = parseEvents(config)
-    user_config[None] = Competition(name=name, utc_offset=utc_offset, points=points, events=events, results=results)
+    name, utc_offset, events, meetings = parseEvents(config)
+    user_config[None] = Competition(name=name, utc_offset=utc_offset, points=points, events=events, results=results, meetings=meetings)
     for user in users_index.values():
         if user.role == 'user':
             reload_user(user.username)
@@ -88,8 +88,8 @@ def reload():
 
 def reload_user(username):
     _, points, config, _2 = readConfig(cfdir=pjoin('users', username))
-    name, utc_offset, events = parseEvents(config)
-    user_config[username] = Competition(name=name, utc_offset=utc_offset, points=points, events=events, results=None)
+    name, utc_offset, events, meetings = parseEvents(config)
+    user_config[username] = Competition(name=name, utc_offset=utc_offset, points=points, events=events, results=None, meetings=meetings)
 
 
 def timeranges(events):
@@ -128,30 +128,45 @@ def update_results(results, roundscnt):
 
 
 class Competition:
-    def __init__(self, name, utc_offset, points, events, results=None):
+    def __init__(self, name, utc_offset, points, events, meetings, results=None):
         self.name = name
         self.utc_offset = utc_offset
         self.events = events
+        self.meetings = meetings
         self.points = points
         if results:
             results = update_results(results, roundscnt=len(events))
         self.results = results
         self.times = list(timeranges(events))
+        self.times_with_meetings = list(timeranges(events+meetings))
         self.testindex = 0
         self.printerindex = 0
         self.printer_pickup = True
 
-    def getEvent(self, time):
-        for event in self.events:
+    def getEvent(self, time, include_meetings=False):
+        events = list(self.events)
+        if include_meetings:
+            events += self.meetings
+        for event in sorted(events, key=lambda x: x.start):
             if event.start < time < event.end:
                 return event
         else:
             return None
 
-    def test(self):
-        t = self.times[self.testindex]
+    def getEvents(self, include_meetings=False):
+        aevents = list(self.events)
+        if include_meetings:
+            aevents += self.meetings
+        return sorted(aevents, key = lambda x: x.start)
+
+    def test(self, include_meetings=False):
+        if include_meetings:
+            times=self.times_with_meetings
+        else:
+            times=self.times
+        t = times[self.testindex]
         self.testindex += 1
-        if self.testindex >= len(self.times):
+        if self.testindex >= len(times):
             self.testindex = 0
         return t
 
@@ -168,11 +183,16 @@ class Competition:
 
 def parseEvents(config):
     events = []
+    meetings = []
     for e in config["events"]:
         e["start"] = datetime.strptime(e["start"], "%d.%m.%Y %H:%M")
         e["end"] = datetime.strptime(e["end"], "%d.%m.%Y %H:%M")
         events.append(event(**e))
-    return config["name"], config["utc_offset"], events
+    for e in config["meetings"]:
+        e["start"] = datetime.strptime(e["start"], "%d.%m.%Y %H:%M")
+        e["end"] = datetime.strptime(e["end"], "%d.%m.%Y %H:%M")
+        meetings.append(event(**e))
+    return config["name"], config["utc_offset"], events, meetings
 
 
 def save_results(results):

@@ -1,46 +1,58 @@
 {
-    "name" : "Robotour xxxx",
+    "name" : "Robotour 2019",
     "utc_offset" : 2,
     "events": [
     {
         "name": "Round0",
         "start": "13.09.2019 18:00",
-        "end": "13.09.2019 19:00",
+        "end": "13.09.2019 22:00",
         "pickup": "A1",
-        "dropoff": "A3",
-        "notes": ""
+        "dropoff": "A2",
+         "notes": "test round"
     },
     {
         "name": "Round1",
         "start": "14.09.2019 09:30",
         "end": "14.09.2019 10:30",
-        "pickup": "A1",
-        "dropoff": "A3",
-        "notes": ""
+        "pickup": "P22",
+        "dropoff": "M01",
+        "notes": "krizovatka a bod na valu v prodlouzeni ulicky"
     },
     {
         "name": "Round2",
         "start": "14.09.2019 11:00",
         "end": "14.09.2019 12:00",
-        "pickup": "A2",
-        "dropoff": "A5",
-        "notes": ""
+        "pickup": "M02",
+        "dropoff": "M03",
+        "notes": "nad parkovistem a pod dalnici"
     },
     {
         "name": "Round3",
         "start": "14.09.2019 13:30",
         "end": "14.09.2019 14:30",
-        "pickup": "A4",
-        "dropoff": "A2",
-        "notes": ""
+        "pickup": "M04",
+        "dropoff": "M05",
+        "notes": "pod trati za rekou, vykladka krizovatka s hlavni (pobliz mraveniste)"
+        
     },
     {
         "name": "Round4",
         "start": "14.09.2019 15:00",
         "end": "14.09.2019 16:00",
-        "pickup": "A9",
-        "dropoff": "A1",
+        "pickup": "M06",
+        "dropoff": "M07",
+        "notes": "pod trati pred rekou, vykladka u kachen"
+    }
+],
+
+    "meetings":[
+    {
+        "name": "Team meeting at the campus next to E006",
+        "start": "14.09.2019 09:00",
+        "end": "14.09.2019 9:30",
+        "pickup": "HOME",
+        "dropoff": "HOME",
         "notes": ""
     }
-]
+    ]
 }
