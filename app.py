@@ -62,23 +62,28 @@ def getround(user):
 @login_required
 def delivery(user=None):
     round = getround(user)
-    config = user_config[None]
+    config = user_config[user]
     if round is not None:
         event = config.events[round]
         return render_template("auto.html", name=event.name + " delivery", qr="geo:%s,%s" % ll(config.points[event.dropoff]), refresh=5)
     else:
-        return Response("No active round now")
+        return render_template("basic.html", name="Wait for pickup", message="No active round now", refresh=5)
 
 
 @app.route('/pickup')
 def pickup(user=None):
     round = getround(user)
-    config = user_config[None]
+    config = user_config[user]
     if round is not None:
         event = config.events[round]
         return render_template("auto.html", name=event.name+ " pickup", qr="geo:%s,%s" % ll(config.points[event.pickup]), refresh=5)
     else:
-        return Response("No active round now")
+        return render_template("basic.html", name="Wait for pickup", message="No active round now", refresh=5)
+
+@app.route('/home')
+def home(user=None):
+    config = user_config[user]
+    return render_template("auto.html", name="HOME", qr="geo:%s,%s" % ll(config.points["HOME"]), refresh=0)
 
 @app.route('/')
 def auto(user=None):
@@ -161,7 +166,7 @@ def test():
 
 @app.route('/print')
 @login_required
-def prinert():
+def printer():
     if current_user.role in ('admin'):
         user = None
     elif current_user.role == 'user':

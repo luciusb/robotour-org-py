@@ -32,14 +32,20 @@
 
 {% block header %}
   {% if current_user.is_authenticated %}
-    <div align="right">
+    <div align="left">
+         <a href="{{ url_for('auto') }}">index</a>
+         <a href="{{ url_for('home') }}">home</a>
+         <a href="{{ url_for('pickup') }}">pickup</a>
          {% if current_user.role == 'admin' or current_user.role == 'admin' %}
             <a href="{{ url_for('delivery') }}">delivery</a>
-            <a href="{{ url_for('pickup') }}">pickup</a>
         {% endif %}
+    </div>
+    <div align="right">
        {{ "Logged in as %s (%s)" % (current_user.username, current_user.role)}}
         {% if current_user.role == 'admin' %}
             <a href="{{ url_for('config') }}">config</a>
+            <a href="{{ url_for('printer') }}">print</a>
+            <a href="{{ url_for('results_edit') }}">edit results</a>
         {% endif %}
         <a href="{{ url_for('logout') }}">log out</a>
     </div>
@@ -48,7 +54,7 @@
     <a href = "{{ url_for('login') }}">login</a>
     </div>
   {% endif %}
-  <a href = "{{ url_for('results') }}">results</a>
+    <a href = "{{ url_for('results') }}">results</a>
   <br>
 
 
@@ -64,8 +70,11 @@
 {% endwith %}
 {% endblock %}
 
-<div id="txt"></div>
+<div id="txt"> </div>
 <div id="content">{% block content %}{% endblock %}</div>
+    {% block body %}
+        <H2> {{ message }} </H2>
+    {% endblock %}
     {% block footer %}
     {% endblock %}
 </body>
