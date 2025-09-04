@@ -297,14 +297,14 @@ def download(filename):
                 dir = 'admin'
             else:
                 dir = 'defaults'
-            return send_from_directory(dir, filename, cache_timeout=1)
+            return send_from_directory(dir, filename, max_age=1)
     elif current_user.role == 'user':
         if filename in ('config.json', 'points.json'):
             if exists(pjoin('users', current_user.username, filename)):
                 dir = pjoin('users', current_user.username)
             else:
                 dir = 'defaults'
-            return send_from_directory(dir, filename, cache_timeout=1)
+            return send_from_directory(dir, filename, max_age=1)
     return abort(401)
 
 

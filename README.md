@@ -1,11 +1,13 @@
 # Instalation
-Use python 3.6
+
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 git clone https://github.com/luciusb/robotour-org-py.git .
 
-git checkout 2018
+git checkout 2025
 
-python3.6 -m venv env
+uv sync --managed-python
 
-env/bin/pip install -r requirements.txt
+# Local testing
 
+uv run flask --debug
